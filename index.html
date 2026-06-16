@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHADOW × CHEATS - PANELS</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login/Signup Modal -->
+        <div id="authModal" class="modal active">
+            <div class="modal-content">
+                <h1 class="brand-title">SHADOW × CHEATS</h1>
+                <p class="subtitle-auth">PANELS</p>
+                <div class="auth-tabs">
+                    <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+                    <button class="tab-btn" onclick="switchTab('signup')">Sign Up</button>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="loginTab" class="tab-content active">
+                    <form onsubmit="handleLogin(event)">
+                        <input type="email" id="loginEmail" placeholder="Email" required>
+                        <input type="password" id="loginPassword" placeholder="Password" required>
+                        <button type="submit" class="btn-primary">Login</button>
+                    </form>
+                </div>
+                
+                <!-- Signup Form -->
+                <div id="signupTab" class="tab-content">
+                    <form onsubmit="handleSignup(event)">
+                        <input type="text" id="signupName" placeholder="Full Name" required>
+                        <input type="email" id="signupEmail" placeholder="Email" required>
+                        <input type="password" id="signupPassword" placeholder="Password" required>
+                        <input type="password" id="signupConfirm" placeholder="Confirm Password" required>
+                        <button type="submit" class="btn-primary">Sign Up</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard (Hidden initially) -->
+        <div id="dashboard" class="dashboard hidden">
+            <!-- Navbar -->
+            <nav class="navbar">
+                <div class="nav-container">
+                    <h1 class="brand-title">SHADOW × CHEATS</h1>
+                    <div class="nav-right">
+                        <span id="userGreeting" class="user-greeting"></span>
+                        <button class="btn-secondary" onclick="openCart()">🛒 Cart (<span id="cartCount">0</span>)</button>
+                        <button class="btn-secondary" id="adminBtn" onclick="toggleAdminPanel()" style="display:none;">⚙️ Admin</button>
+                        <button class="btn-danger" onclick="handleLogout()">Logout</button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Admin Panel (Hidden initially) -->
+            <div id="adminPanel" class="admin-panel hidden">
+                <div class="admin-container">
+                    <h2>Admin Panel - Product Management</h2>
+                    <div class="admin-section">
+                        <h3>Add New Product</h3>
+                        <form onsubmit="handleAddProduct(event)" class="admin-form">
+                            <input type="text" id="productName" placeholder="Product Name" required>
+                            <textarea id="productDescription" placeholder="Description" required></textarea>
+                            <input type="number" id="productPrice" placeholder="Price ($)" min="0" step="0.01" required>
+                            <input type="text" id="productScanner" placeholder="Scanner Name (if applicable)">
+                            <button type="submit" class="btn-primary">Add Product</button>
+                        </form>
+                    </div>
+
+                    <div class="admin-section">
+                        <h3>Manage Products</h3>
+                        <div id="adminProductList" class="admin-product-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cart Modal -->
+            <div id="cartModal" class="modal">
+                <div class="modal-content cart-modal">
+                    <span class="close" onclick="closeCart()">&times;</span>
+                    <h2>Shopping Cart</h2>
+                    <div id="cartItems" class="cart-items"></div>
+                    <div class="cart-footer">
+                        <div class="cart-total">
+                            <strong>Total: $<span id="cartTotal">0.00</span></strong>
+                        </div>
+                        <button class="btn-primary" onclick="checkout()" id="checkoutBtn">Proceed to Checkout</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="container">
+                <h2 class="subtitle">PANELS</h2>
+                <div class="products-grid" id="productsGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
