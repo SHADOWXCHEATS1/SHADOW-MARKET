@@ -40,6 +40,19 @@
             </div>
         </div>
 
+        <!-- OTP Verification Modal -->
+        <div id="otpModal" class="modal">
+            <div class="modal-content">
+                <h2>Verify Email</h2>
+                <p id="otpMessage">Enter the OTP sent to your email</p>
+                <form onsubmit="verifyOTP(event)">
+                    <input type="text" id="otpInput" placeholder="Enter 6-digit OTP" maxlength="6" required>
+                    <button type="submit" class="btn-primary">Verify</button>
+                    <button type="button" class="btn-secondary" onclick="resendOTP()">Resend OTP</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Main Dashboard (Hidden initially) -->
         <div id="dashboard" class="dashboard hidden">
             <!-- Navbar -->
@@ -58,21 +71,72 @@
             <!-- Admin Panel (Hidden initially) -->
             <div id="adminPanel" class="admin-panel hidden">
                 <div class="admin-container">
-                    <h2>Admin Panel - Product Management</h2>
-                    <div class="admin-section">
-                        <h3>Add New Product</h3>
-                        <form onsubmit="handleAddProduct(event)" class="admin-form">
-                            <input type="text" id="productName" placeholder="Product Name" required>
-                            <textarea id="productDescription" placeholder="Description" required></textarea>
-                            <input type="number" id="productPrice" placeholder="Price ($)" min="0" step="0.01" required>
-                            <input type="text" id="productScanner" placeholder="Scanner Name (if applicable)">
-                            <button type="submit" class="btn-primary">Add Product</button>
-                        </form>
+                    <span class="close" onclick="toggleAdminPanel()" style="cursor: pointer; font-size: 28px;">×</span>
+                    
+                    <!-- Admin Tabs -->
+                    <div class="admin-tabs">
+                        <button class="admin-tab-btn active" onclick="switchAdminTab('products')">Products</button>
+                        <button class="admin-tab-btn" onclick="switchAdminTab('scanner')">Scanner Setup</button>
+                        <button class="admin-tab-btn" onclick="switchAdminTab('contact')">Contact Details</button>
                     </div>
 
-                    <div class="admin-section">
-                        <h3>Manage Products</h3>
-                        <div id="adminProductList" class="admin-product-list"></div>
+                    <!-- Products Tab -->
+                    <div id="productsTab" class="admin-tab-content active">
+                        <h2>Product Management</h2>
+                        <div class="admin-section">
+                            <h3>Add New Product</h3>
+                            <form onsubmit="handleAddProduct(event)" class="admin-form">
+                                <input type="text" id="productName" placeholder="Product Name" required>
+                                <textarea id="productDescription" placeholder="Description" required></textarea>
+                                <input type="number" id="productPrice" placeholder="Price (₹)" min="0" step="0.01" required>
+                                <button type="submit" class="btn-primary">Add Product</button>
+                            </form>
+                        </div>
+
+                        <div class="admin-section">
+                            <h3>Manage Products</h3>
+                            <div id="adminProductList" class="admin-product-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Scanner Setup Tab -->
+                    <div id="scannerTab" class="admin-tab-content">
+                        <h2>Scanner Management</h2>
+                        <div class="admin-section">
+                            <h3>Add Scanner</h3>
+                            <form onsubmit="handleAddScanner(event)" class="admin-form">
+                                <input type="text" id="scannerName" placeholder="Scanner Name" required>
+                                <textarea id="scannerDescription" placeholder="Scanner Description" required></textarea>
+                                <input type="number" id="scannerPrice" placeholder="Scanner Price (₹)" min="0" step="0.01" required>
+                                <input type="text" id="scannerKey" placeholder="Scanner License Key" required>
+                                <button type="submit" class="btn-primary">Add Scanner</button>
+                            </form>
+                        </div>
+
+                        <div class="admin-section">
+                            <h3>Active Scanners</h3>
+                            <div id="adminScannerList" class="admin-product-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Details Tab -->
+                    <div id="contactTab" class="admin-tab-content">
+                        <h2>Contact Details Management</h2>
+                        <div class="admin-section">
+                            <h3>Update Contact Information</h3>
+                            <form onsubmit="handleUpdateContact(event)" class="admin-form">
+                                <input type="email" id="contactEmail" placeholder="Email Address" required>
+                                <input type="tel" id="contactPhone" placeholder="Phone Number" required>
+                                <input type="text" id="contactAddress" placeholder="Address" required>
+                                <textarea id="contactInfo" placeholder="Additional Contact Information"></textarea>
+                                <button type="submit" class="btn-primary">Update Contact</button>
+                            </form>
+                        </div>
+
+                        <div class="admin-section">
+                            <h3>Current Contact Details</h3>
+                            <div id="currentContactInfo" class="contact-info"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -85,7 +149,7 @@
                     <div id="cartItems" class="cart-items"></div>
                     <div class="cart-footer">
                         <div class="cart-total">
-                            <strong>Total: $<span id="cartTotal">0.00</span></strong>
+                            <strong>Total: ₹<span id="cartTotal">0.00</span></strong>
                         </div>
                         <button class="btn-primary" onclick="checkout()" id="checkoutBtn">Proceed to Checkout</button>
                     </div>
