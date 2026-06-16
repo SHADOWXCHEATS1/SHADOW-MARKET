@@ -77,6 +77,7 @@
                     <div class="admin-tabs">
                         <button class="admin-tab-btn active" onclick="switchAdminTab('products')">Products</button>
                         <button class="admin-tab-btn" onclick="switchAdminTab('scanner')">Scanner Setup</button>
+                        <button class="admin-tab-btn" onclick="switchAdminTab('orders')">Order Info</button>
                         <button class="admin-tab-btn" onclick="switchAdminTab('contact')">Contact Details</button>
                     </div>
 
@@ -116,6 +117,15 @@
                         <div class="admin-section">
                             <h3>Active Scanners</h3>
                             <div id="adminScannerList" class="admin-product-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Orders Tab -->
+                    <div id="ordersTab" class="admin-tab-content">
+                        <h2>Order Information</h2>
+                        <div class="admin-section">
+                            <h3>All Orders</h3>
+                            <div id="adminOrdersList" class="admin-orders-list"></div>
                         </div>
                     </div>
 
