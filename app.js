@@ -4,13 +4,17 @@
 
 // Owner credentials
 const OWNER_EMAIL = 'abhinavshiva36@gmail.com';
-const OWNER_PASSWORD = 'admin123'; // Change this in production
+const OWNER_PASSWORD = 'admin123';
 
 // Data Storage (Using localStorage)
 let users = JSON.parse(localStorage.getItem('users')) || [];
 let products = JSON.parse(localStorage.getItem('products')) || getDefaultProducts();
+let scanners = JSON.parse(localStorage.getItem('scanners')) || [];
+let contactDetails = JSON.parse(localStorage.getItem('contactDetails')) || getDefaultContact();
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let pendingOTP = null;
+let pendingSignupData = null;
 
 // Default Products
 function getDefaultProducts() {
@@ -19,24 +23,38 @@ function getDefaultProducts() {
             id: 1,
             name: 'INTERNAL PC',
             description: 'Advanced internal tool for PC systems',
-            price: 29.99,
+            price: 2999,
             scanner: 'Premium Scanner'
         },
         {
             id: 2,
             name: 'AIM SILENT',
             description: 'Silent aiming assistant',
-            price: 19.99,
+            price: 1999,
             scanner: 'Standard Scanner'
         },
         {
             id: 3,
             name: 'UID BYPASS',
             description: 'UID bypass utility',
-            price: 24.99,
+            price: 2499,
             scanner: 'Basic Scanner'
         }
     ];
+}
+
+function getDefaultContact() {
+    return {
+        email: 'abhinavshiva36@gmail.com',
+        phone: '+91-XXXXXXXXXX',
+        address: 'Contact owner for address',
+        info: 'Contact information will be updated by owner'
+    };
+}
+
+// Generate random OTP
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 // ============================================
@@ -46,6 +64,13 @@ function getDefaultProducts() {
 function switchTab(tab) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tab + 'Tab').classList.add('active');
+    event.target.classList.add('active');
+}
+
+function switchAdminTab(tab) {
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(tab + 'Tab').classList.add('active');
     event.target.classList.add('active');
 }
@@ -67,14 +92,51 @@ function handleSignup(event) {
         return;
     }
 
-    users.push({ id: Date.now(), name, email, password, isAdmin: false });
-    localStorage.setItem('users', JSON.stringify(users));
-    alert('Account created! Please login.');
-    switchTab('login');
-    document.getElementById('signupName').value = '';
-    document.getElementById('signupEmail').value = '';
-    document.getElementById('signupPassword').value = '';
-    document.getElementById('signupConfirm').value = '';
+    // Generate OTP and show verification modal
+    pendingOTP = generateOTP();
+    pendingSignupData = { name, email, password };
+    
+    // In production, send OTP via email. For demo, show in alert
+    alert(`OTP sent to ${email}!\n\nDemo OTP: ${pendingOTP}`);
+    
+    document.getElementById('otpMessage').textContent = `Enter the OTP sent to ${email}`;
+    document.getElementById('otpModal').classList.add('active');
+}
+
+function verifyOTP(event) {
+    event.preventDefault();
+    const enteredOTP = document.getElementById('otpInput').value;
+    
+    if (enteredOTP === pendingOTP) {
+        // OTP verified, create account
+        users.push({ 
+            id: Date.now(), 
+            name: pendingSignupData.name, 
+            email: pendingSignupData.email, 
+            password: pendingSignupData.password, 
+            isAdmin: false,
+            verified: true 
+        });
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        alert('Email verified! Account created successfully. Please login.');
+        document.getElementById('otpModal').classList.remove('active');
+        document.getElementById('otpInput').value = '';
+        switchTab('login');
+        
+        // Clear signup form
+        document.getElementById('signupName').value = '';
+        document.getElementById('signupEmail').value = '';
+        document.getElementById('signupPassword').value = '';
+        document.getElementById('signupConfirm').value = '';
+    } else {
+        alert('Invalid OTP! Please try again.');
+    }
+}
+
+function resendOTP() {
+    pendingOTP = generateOTP();
+    alert(`New OTP sent!\n\nDemo OTP: ${pendingOTP}`);
 }
 
 function handleLogin(event) {
@@ -85,7 +147,7 @@ function handleLogin(event) {
     const user = users.find(u => u.email === email && u.password === password);
     
     if (!user && email === OWNER_EMAIL && password === OWNER_PASSWORD) {
-        currentUser = { email: OWNER_EMAIL, isAdmin: true, name: 'Admin' };
+        currentUser = { email: OWNER_EMAIL, isAdmin: true, name: 'Admin', verified: true };
     } else if (user) {
         currentUser = user;
     } else {
@@ -144,7 +206,7 @@ function displayProducts() {
         card.innerHTML = `
             <div class="product-name">${product.name}</div>
             <div class="product-description">${product.description}</div>
-            <div class="product-price">$${product.price.toFixed(2)}</div>
+            <div class="product-price">₹${product.price.toFixed(2)}</div>
             ${product.scanner ? `<div class="product-scanner">Scanner: ${product.scanner}</div>` : ''}
             <div class="product-actions">
                 <button class="product-actions button btn-buy" onclick="buyProduct(${product.id})">Buy</button>
@@ -172,9 +234,34 @@ function addToCart(productId) {
 
 function buyProduct(productId) {
     const product = products.find(p => p.id === productId);
-    if (confirm(`Purchase ${product.name} for $${product.price.toFixed(2)}?`)) {
-        alert(`Purchase successful! Your ${product.scanner || 'Scanner'} will be provided shortly.`);
+    if (confirm(`Purchase ${product.name} for ₹${product.price.toFixed(2)}?`)) {
+        sendPurchaseEmail(product);
+        alert(`Purchase successful!\n\nYour ${product.scanner || 'Scanner'} will be provided shortly.\n\nConfirmation email sent to ${currentUser.email}`);
     }
+}
+
+function sendPurchaseEmail(product) {
+    const emailContent = `
+    Dear ${currentUser.name},
+    
+    Thank you for your purchase!
+    
+    Product: ${product.name}
+    Price: ₹${product.price.toFixed(2)}
+    Scanner: ${product.scanner || 'N/A'}
+    
+    Contact Details for Support:
+    Email: ${contactDetails.email}
+    Phone: ${contactDetails.phone}
+    Address: ${contactDetails.address}
+    
+    Your scanner will be provided shortly. Please keep this confirmation for reference.
+    
+    Best Regards,
+    SHADOW × CHEATS Team
+    `;
+    
+    console.log('Purchase email sent:', emailContent);
 }
 
 // ============================================
@@ -217,10 +304,10 @@ function updateCartDisplay() {
         cartItem.innerHTML = `
             <div class="cart-item-info">
                 <h4>${item.name}</h4>
-                <p>$${item.price.toFixed(2)} x ${item.quantity}</p>
+                <p>₹${item.price.toFixed(2)} x ${item.quantity}</p>
             </div>
             <div>
-                <div class="cart-item-price">$${itemTotal.toFixed(2)}</div>
+                <div class="cart-item-price">₹${itemTotal.toFixed(2)}</div>
                 <button class="cart-item-remove" onclick="removeFromCart(${index})">Remove</button>
             </div>
         `;
@@ -244,7 +331,31 @@ function checkout() {
     }
     
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    alert(`Order placed! Total: $${total.toFixed(2)}\n\nScanner will be provided shortly.`);
+    const emailContent = `
+    Order Confirmation!
+    
+    Dear ${currentUser.name},
+    
+    Your order has been placed successfully!
+    
+    Order Summary:
+    ${cart.map(item => `${item.name} x ${item.quantity} = ₹${(item.price * item.quantity).toFixed(2)}`).join('\n')}
+    
+    Total: ₹${total.toFixed(2)}
+    
+    Contact for Scanner Details:
+    Email: ${contactDetails.email}
+    Phone: ${contactDetails.phone}
+    
+    Your scanner(s) will be provided shortly.
+    
+    Best Regards,
+    SHADOW × CHEATS Team
+    `;
+    
+    console.log('Order confirmation email:', emailContent);
+    
+    alert(`Order placed!\n\nTotal: ₹${total.toFixed(2)}\n\nConfirmation email sent to ${currentUser.email}\n\nScanner details will be provided shortly.`);
     cart = [];
     localStorage.removeItem('cart');
     updateCart();
@@ -261,23 +372,25 @@ function toggleAdminPanel() {
     adminPanel.classList.toggle('hidden');
     if (!adminPanel.classList.contains('hidden')) {
         displayAdminProducts();
+        displayScanners();
+        displayContactInfo();
     }
 }
 
+// Products Tab Functions
 function handleAddProduct(event) {
     event.preventDefault();
     
     const name = document.getElementById('productName').value;
     const description = document.getElementById('productDescription').value;
     const price = parseFloat(document.getElementById('productPrice').value);
-    const scanner = document.getElementById('productScanner').value;
     
     const newProduct = {
         id: Date.now(),
         name,
         description,
         price,
-        scanner
+        scanner: ''
     };
     
     products.push(newProduct);
@@ -286,7 +399,6 @@ function handleAddProduct(event) {
     document.getElementById('productName').value = '';
     document.getElementById('productDescription').value = '';
     document.getElementById('productPrice').value = '';
-    document.getElementById('productScanner').value = '';
     
     alert('Product added successfully!');
     displayAdminProducts();
@@ -303,7 +415,7 @@ function displayAdminProducts() {
         item.innerHTML = `
             <div class="admin-product-info">
                 <h4>${product.name}</h4>
-                <p>Price: $${product.price.toFixed(2)} | Scanner: ${product.scanner || 'None'}</p>
+                <p>Price: ₹${product.price.toFixed(2)}</p>
                 <p>${product.description}</p>
             </div>
             <div class="admin-product-actions">
@@ -317,14 +429,12 @@ function displayAdminProducts() {
 
 function editProduct(productId) {
     const product = products.find(p => p.id === productId);
-    const newPrice = prompt(`Enter new price for ${product.name}:`, product.price);
+    const newPrice = prompt(`Enter new price for ${product.name} (₹):`, product.price);
     const newName = prompt(`Enter new name:`, product.name);
-    const newScanner = prompt(`Enter scanner name:`, product.scanner || '');
     
     if (newPrice !== null) {
         product.price = parseFloat(newPrice);
         product.name = newName || product.name;
-        product.scanner = newScanner || product.scanner;
         localStorage.setItem('products', JSON.stringify(products));
         displayAdminProducts();
         displayProducts();
@@ -338,6 +448,105 @@ function deleteProduct(productId) {
         displayAdminProducts();
         displayProducts();
     }
+}
+
+// Scanner Tab Functions
+function handleAddScanner(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('scannerName').value;
+    const description = document.getElementById('scannerDescription').value;
+    const price = parseFloat(document.getElementById('scannerPrice').value);
+    const key = document.getElementById('scannerKey').value;
+    
+    const newScanner = {
+        id: Date.now(),
+        name,
+        description,
+        price,
+        key
+    };
+    
+    scanners.push(newScanner);
+    localStorage.setItem('scanners', JSON.stringify(scanners));
+    
+    document.getElementById('scannerName').value = '';
+    document.getElementById('scannerDescription').value = '';
+    document.getElementById('scannerPrice').value = '';
+    document.getElementById('scannerKey').value = '';
+    
+    alert('Scanner added successfully!');
+    displayScanners();
+}
+
+function displayScanners() {
+    const scannerList = document.getElementById('adminScannerList');
+    scannerList.innerHTML = '';
+    
+    if (scanners.length === 0) {
+        scannerList.innerHTML = '<p style="color: #888; text-align: center;">No scanners added yet</p>';
+        return;
+    }
+    
+    scanners.forEach(scanner => {
+        const item = document.createElement('div');
+        item.className = 'admin-product-item';
+        item.innerHTML = `
+            <div class="admin-product-info">
+                <h4>${scanner.name}</h4>
+                <p>Price: ₹${scanner.price.toFixed(2)}</p>
+                <p>${scanner.description}</p>
+                <p>License Key: <strong>${scanner.key}</strong></p>
+            </div>
+            <div class="admin-product-actions">
+                <button class="btn-delete" onclick="deleteScanner(${scanner.id})">Delete</button>
+            </div>
+        `;
+        scannerList.appendChild(item);
+    });
+}
+
+function deleteScanner(scannerId) {
+    if (confirm('Are you sure you want to delete this scanner?')) {
+        scanners = scanners.filter(s => s.id !== scannerId);
+        localStorage.setItem('scanners', JSON.stringify(scanners));
+        displayScanners();
+    }
+}
+
+// Contact Details Tab Functions
+function handleUpdateContact(event) {
+    event.preventDefault();
+    
+    contactDetails = {
+        email: document.getElementById('contactEmail').value,
+        phone: document.getElementById('contactPhone').value,
+        address: document.getElementById('contactAddress').value,
+        info: document.getElementById('contactInfo').value
+    };
+    
+    localStorage.setItem('contactDetails', JSON.stringify(contactDetails));
+    alert('Contact details updated successfully!');
+    displayContactInfo();
+}
+
+function displayContactInfo() {
+    const contactInfo = document.getElementById('currentContactInfo');
+    contactInfo.innerHTML = `
+        <div class="contact-info">
+            <h4>Current Contact Information</h4>
+            <p><strong>Email:</strong> ${contactDetails.email}</p>
+            <p><strong>Phone:</strong> ${contactDetails.phone}</p>
+            <p><strong>Address:</strong> ${contactDetails.address}</p>
+            <p><strong>Additional Info:</strong> ${contactDetails.info || 'N/A'}</p>
+        </div>
+    `;
+    
+    // Also update form fields
+    document.getElementById('contactEmail').value = contactDetails.email;
+    document.getElementById('contactPhone').value = contactDetails.phone;
+    document.getElementById('contactAddress').value = contactDetails.address;
+    document.getElementById('contactInfo').value = contactDetails.info;
 }
 
 // ============================================
@@ -357,6 +566,7 @@ window.addEventListener('load', () => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         document.getElementById('cartModal').classList.remove('active');
+        document.getElementById('otpModal').classList.remove('active');
         if (currentUser && currentUser.isAdmin) {
             document.getElementById('adminPanel').classList.add('hidden');
         }

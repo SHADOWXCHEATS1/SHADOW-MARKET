@@ -287,13 +287,6 @@ input:focus, textarea:focus {
     text-shadow: 0 0 10px rgba(255, 23, 68, 0.5);
 }
 
-.product-scanner {
-    color: #888;
-    font-size: 0.85em;
-    margin-bottom: 15px;
-    font-style: italic;
-}
-
 .product-actions {
     display: flex;
     gap: 10px;
@@ -357,6 +350,55 @@ input:focus, textarea:focus {
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 0 50px rgba(220, 20, 60, 0.5);
+    position: relative;
+}
+
+.admin-container .close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--crimson);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.admin-container .close:hover {
+    color: var(--light-crimson);
+}
+
+/* Admin Tabs */
+.admin-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--crimson);
+    flex-wrap: wrap;
+}
+
+.admin-tab-btn {
+    padding: 12px 20px;
+    background: none;
+    color: #999;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: all 0.3s;
+    border-bottom: 3px solid transparent;
+}
+
+.admin-tab-btn.active {
+    color: var(--crimson);
+    border-bottom-color: var(--crimson);
+}
+
+.admin-tab-content {
+    display: none;
+}
+
+.admin-tab-content.active {
+    display: block;
 }
 
 .admin-container h2 {
@@ -375,6 +417,10 @@ input:focus, textarea:focus {
     margin-bottom: 30px;
     padding-bottom: 30px;
     border-bottom: 1px solid var(--crimson);
+}
+
+.admin-section:last-child {
+    border-bottom: none;
 }
 
 .admin-form {
@@ -411,6 +457,7 @@ input:focus, textarea:focus {
 .admin-product-info p {
     color: #888;
     font-size: 0.9em;
+    margin: 3px 0;
 }
 
 .admin-product-actions {
@@ -439,6 +486,25 @@ input:focus, textarea:focus {
 
 .btn-edit:hover, .btn-delete:hover {
     transform: scale(1.05);
+}
+
+/* Contact Info */
+.contact-info {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 3px solid var(--crimson);
+}
+
+.contact-info h4 {
+    color: var(--light-crimson);
+    margin-bottom: 10px;
+}
+
+.contact-info p {
+    color: #aaa;
+    margin: 8px 0;
+    word-break: break-all;
 }
 
 /* Cart Modal */
@@ -543,6 +609,19 @@ input:focus, textarea:focus {
 
     .modal-content, .admin-container {
         max-width: 95%;
+    }
+
+    .admin-tabs {
+        flex-direction: column;
+    }
+
+    .admin-tab-btn {
+        border-bottom: none;
+        border-left: 3px solid transparent;
+    }
+
+    .admin-tab-btn.active {
+        border-left-color: var(--crimson);
     }
 }
 
